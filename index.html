@@ -1,0 +1,1346 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"><style>
+  :root{
+    --bg1:#efe8fb; --bg2:#f8f1ff; --accent:#8f6fd8; --accentDark:#5f3fae;
+    --gold:#f0cd7a; --sea:#79d0da; --ink:#3c3350;
+    box-sizing:border-box;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at 50% 0%, #6fb8d6 0%, #2f7aa8 55%, #1f5c85 100%);
+    font-family:'Nunito',sans-serif;
+    color:#3c3350;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    min-height:100%;
+  }
+  h1,h2,h3,h4{font-family:'Fredoka',sans-serif;margin:0;font-weight:600;}
+  button,input,select,textarea{font-family:'Nunito',sans-serif;}
+  #app{max-width:640px;margin:0 auto;padding:18px 16px 60px;}
+  .rope-frame{
+    border-radius:20px;padding:14px;position:relative;
+    background:repeating-linear-gradient(45deg,#8a6a3f 0 6px,#6e5230 6px 12px);
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+    margin-top:10px;
+  }
+  .hero-ship-deco{
+    position:absolute;right:-22px;top:36px;width:92px;z-index:3;
+    filter:drop-shadow(2px 4px 3px rgba(0,0,0,0.35));
+  }
+  @media(max-width:420px){.hero-ship-deco{width:70px;right:-14px;top:44px;}}
+  .parchment{
+    border-radius:14px;padding:18px 16px 26px;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(150,110,60,0.10) 0 14%, transparent 60%),
+      radial-gradient(circle at 85% 75%, rgba(150,110,60,0.10) 0 16%, transparent 60%),
+      radial-gradient(circle at 70% 15%, rgba(150,110,60,0.08) 0 10%, transparent 55%),
+      linear-gradient(150deg,#f3e6c8,#ecd9ae);
+    box-shadow:inset 0 0 0 2px rgba(120,90,50,0.35), inset 0 0 40px rgba(120,90,50,0.15);
+  }
+  #confetti-canvas{
+    position:fixed;top:0;left:0;width:100vw;height:100vh;
+    pointer-events:none;z-index:999;
+  }
+  a{color:inherit;}
+
+  /* ---- shared bits ---- */
+  .pillbtn{
+    font-family:'Fredoka',sans-serif;font-weight:600;font-size:15px;
+    border:none;border-radius:999px;padding:12px 22px;cursor:pointer;
+    color:#fff;background:var(--accent);
+    box-shadow:0 4px 0 rgba(0,0,0,0.12);
+    transition:transform .08s ease;
+  }
+  .pillbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.12);}
+  .pillbtn.ghost{
+    background:#fff;color:var(--ink);border:2px solid #e4dcf5;box-shadow:none;
+  }
+  .pillbtn.small{padding:8px 16px;font-size:13.5px;}
+  .pillbtn.negative{background:#fff;color:#8a7fa0;border:2px solid #e4dcf5;box-shadow:none;}
+  .pillbtn:disabled{opacity:.4;cursor:default;}
+  .backlink{
+    display:inline-flex;align-items:center;gap:6px;font-weight:700;
+    color:var(--accentDark);font-family:'Fredoka',sans-serif;font-size:14px;
+    text-decoration:none;margin-bottom:14px;
+  }
+
+  /* ---- page tabs (Prize Quest / Grade Level Quest) ---- */
+  .page-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .page-tab{
+    flex:1;font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;
+    padding:10px 12px;border-radius:14px;border:2px solid #e4dcf5;background:#fff;
+    color:#5f3fae;cursor:pointer;
+  }
+  .page-tab.active{background:#5f3fae;color:#fff;border-color:#5f3fae;}
+
+  /* ---- grade level quest tab ---- */
+  .grade-quest-wrap{margin-bottom:18px;}
+  .grade-prize-card{
+    background:#fff;border:2.5px solid #5f3fae;border-radius:18px;padding:14px 16px;
+    margin-bottom:14px;position:relative;
+  }
+  .grade-prize-card.earned{background:#fff8e2;}
+  .grade-prize-badge{
+    display:inline-block;font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;
+    padding:3px 10px;border-radius:12px;background:#f0cd7a;color:#3c3350;margin-bottom:8px;
+  }
+  .grade-prize-body{display:flex;align-items:center;gap:10px;}
+  .grade-prize-text h4{font-family:'Fredoka',sans-serif;font-size:15px;margin:0 0 2px;}
+  .grade-prize-text p{font-size:12.5px;color:#6b6280;margin:0;}
+  .grade-prize-hint{font-size:11.5px;color:#8a80a0;margin:8px 0 0;}
+  .grade-prize-editor{
+    background:#faf8ff;border-radius:14px;padding:10px 12px;margin-bottom:14px;
+  }
+  .grade-prize-editor input[type="text"]{
+    width:100%;border:1.5px solid #e4dcf5;border-radius:10px;padding:8px 10px;
+    font-size:13.5px;margin-bottom:8px;background:#fff;
+  }
+  .grade-path-list{display:flex;flex-direction:column;gap:12px;}
+  .grade-road-row{display:flex;gap:10px;}
+  .grade-road-card{
+    flex:1;min-width:0;background:#fff;border:2px solid #e4dcf5;border-radius:16px;
+    padding:10px 8px 12px;text-align:center;
+  }
+  .grade-road-card.met{border-color:#7cc48a;background:#f2fbf3;}
+  .grade-road-head{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:8px;}
+  .grade-road-head h4{font-family:'Fredoka',sans-serif;font-size:12.5px;margin:0;}
+  .grade-road-emoji{font-size:20px;}
+  .grade-road-track{position:relative;height:140px;width:40px;margin:0 auto 8px;}
+  .grade-road-path{
+    position:absolute;left:50%;top:6px;bottom:6px;width:12px;transform:translateX(-50%);
+    background:#e4dcf5;border-radius:6px;
+  }
+  .grade-road-card.met .grade-road-path{background:#c9ecd0;}
+  .grade-road-stone{
+    position:absolute;left:50%;width:14px;height:14px;border-radius:50%;
+    background:#fff;border:2px solid #c3b6ea;transform:translate(-50%,50%);z-index:1;
+  }
+  .grade-road-flag{position:absolute;left:50%;top:-8px;transform:translateX(-50%);font-size:16px;}
+  .grade-road-token{
+    position:absolute;left:50%;width:28px;height:28px;border-radius:50%;background:#fff;
+    border:2.5px solid #5f3fae;display:flex;align-items:center;justify-content:center;
+    font-size:14px;transform:translate(-50%,50%);transition:bottom .3s ease;
+    box-shadow:0 2px 4px rgba(0,0,0,0.2);z-index:2;
+  }
+  .grade-road-nums{display:flex;justify-content:space-between;font-size:10.5px;color:#6b6280;margin-bottom:2px;}
+  .grade-road-status{font-size:11px;font-weight:700;color:#3c3350;margin:0;}
+  .grade-edit-row{display:flex;gap:5px;margin-top:8px;}
+  .grade-edit-row input{
+    flex:1;border:1.5px solid #e4dcf5;border-radius:8px;padding:5px 4px;font-size:11.5px;
+    background:#faf8ff;min-width:0;text-align:center;
+  }
+
+  /* ---- hub ---- */
+  .hub-head{text-align:center;margin-bottom:22px;}
+  .hub-head h1{font-size:28px;color:#5f3fae;}
+  .hub-head p{margin:6px 0 0;color:#8a7fa0;font-size:14.5px;}
+  .hub-grid{display:flex;flex-direction:column;gap:14px;}
+  .hub-card{
+    background:#fff;border-radius:20px;overflow:hidden;
+    box-shadow:0 4px 16px rgba(90,60,140,0.08);
+    display:flex;align-items:center;gap:14px;padding:14px 16px;
+  }
+  .hub-swatch{
+    width:54px;height:54px;border-radius:16px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .hub-info{flex:1;min-width:0;}
+  .hub-info h3{font-size:17px;}
+  .hub-dots{display:flex;gap:5px;margin-top:6px;}
+  .hub-dot{width:9px;height:9px;border-radius:50%;background:#e4dcf5;}
+  .hub-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+  .add-card{
+    background:#fff;border:2px dashed #d9cdf2;border-radius:20px;
+    padding:18px;margin-top:6px;
+  }
+  .add-card h3{font-size:16px;margin-bottom:12px;}
+  .field-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+  .field-row label{font-size:12.5px;font-weight:700;color:#8a7fa0;}
+  .field-row input,.field-row select,.field-row textarea{
+    border:1.5px solid #e4dcf5;border-radius:10px;padding:9px 11px;font-size:14.5px;background:#faf8ff;
+  }
+  .import-help{font-size:12.5px;color:#7a6a99;margin:0 0 12px;line-height:1.4;}
+  .import-summary{margin-top:12px;padding:10px 12px;border-radius:10px;background:#eef7ec;color:#2f6b2f;font-size:13.5px;}
+  .import-unmatched{margin-top:8px;padding:10px 12px;border-radius:10px;background:#fdf1e8;color:#a05a1f;font-size:13.5px;}
+  .import-error{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fbe8e8;color:#a02020;font-size:13.5px;}
+
+  /* ---- scroll banner ---- */
+  .scroll-banner{
+    position:relative;text-align:center;padding:20px 18px 16px;margin:2px 0 18px;
+    background:#f6ecd2;
+    border-top:4px solid #6e5230;border-bottom:4px solid #6e5230;
+    box-shadow:0 3px 10px rgba(90,60,30,0.15);
+  }
+  .scroll-banner::before,.scroll-banner::after{
+    content:"";position:absolute;top:-4px;bottom:-4px;width:16px;
+    background:linear-gradient(90deg,#8a6a3f,#6e5230);
+    border-radius:8px;
+  }
+  .scroll-banner::before{left:-8px;}
+  .scroll-banner::after{right:-8px;}
+  .signpost-stack{position:absolute;top:8px;left:10px;display:flex;flex-direction:column;gap:5px;z-index:2;}
+  .signpost{
+    background:#6e5230;color:#f3e6c8;font-family:'Fredoka',sans-serif;font-weight:600;
+    font-size:8.5px;letter-spacing:.4px;padding:3px 9px;border-radius:2px;
+    box-shadow:0 2px 0 rgba(0,0,0,0.2);white-space:nowrap;
+  }
+  .signpost:nth-child(1){transform:rotate(-3deg);}
+  .signpost:nth-child(2){transform:rotate(2deg);margin-left:6px;}
+  .signpost:nth-child(3){transform:rotate(-2deg);}
+  .quote-tag{
+    position:absolute;top:6px;right:8px;max-width:118px;background:#fbf3de;
+    border:1.5px solid #22203f;border-radius:2px;padding:7px 9px 8px;
+    transform:rotate(3deg);box-shadow:0 3px 6px rgba(0,0,0,0.18);z-index:2;
+    font-family:'Nunito',sans-serif;font-size:9.5px;font-style:italic;color:#4a4030;line-height:1.3;
+  }
+  .emblem-wrap{margin:0 auto 6px;width:56px;height:56px;position:relative;z-index:2;}
+  .scroll-banner .banner-pill{
+    display:inline-block;background:rgba(255,255,255,.6);color:var(--accentDark);
+    font-family:'Fredoka',sans-serif;font-weight:600;font-size:11px;letter-spacing:.3px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;position:relative;z-index:2;
+    border:1.5px solid rgba(34,32,63,0.2);
+  }
+  .scroll-banner h1{
+    font-family:'Pirata One',serif;font-size:34px;line-height:1;letter-spacing:.5px;
+    color:#22203f;position:relative;z-index:2;text-shadow:1px 1px 0 rgba(255,255,255,0.3);
+  }
+  .scroll-banner p{margin:8px 0 0;color:#5c5340;font-size:13px;position:relative;z-index:2;}
+
+  /* ---- ribbon banner ---- */
+  .ribbon-banner{
+    position:relative;text-align:center;margin:26px auto 4px;max-width:88%;
+  }
+  .ribbon-banner .ribbon-body{
+    background:#8a2d2d;color:#fbf0dc;font-family:'Pirata One',serif;font-size:20px;
+    padding:8px 26px;position:relative;box-shadow:0 3px 6px rgba(0,0,0,0.2);
+    border-top:1.5px solid rgba(255,255,255,0.25);border-bottom:1.5px solid rgba(0,0,0,0.25);
+  }
+  .ribbon-banner .ribbon-tail{
+    position:absolute;top:0;width:16px;height:100%;background:#6e2020;
+  }
+  .ribbon-banner .ribbon-tail.left{left:-16px;clip-path:polygon(0 50%,100% 0,100% 100%);}
+  .ribbon-banner .ribbon-tail.right{right:-16px;clip-path:polygon(100% 50%,0 0,0 100%);}
+  .ribbon-banner p{margin:6px 0 0;font-size:12.5px;color:#5c5340;}
+
+  /* ---- medallion buttons ---- */
+  .medallion-btn{
+    width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;color:#fbf0dc;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 0 rgba(0,0,0,0.3), inset 0 -3px 6px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.25);
+  }
+  .medallion-btn:active{transform:translateY(2px);}
+  .medallion-btn.pos{background:radial-gradient(circle at 35% 30%,#c94b4b,#8a2d2d);}
+  .medallion-btn.neg{
+    background:radial-gradient(circle at 35% 30%,#9a958f,#6b6660);color:#f3ede0;font-size:11px;
+  }
+  .xp-medallion-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  /* ---- map path decoration ---- */
+  .map-path-deco{display:flex;justify-content:center;margin:10px 0 2px;opacity:0.8;}
+
+  /* ==================== HERO ACADEMY MOTIF ==================== */
+  .hero-frame{
+    border-radius:16px;padding:3px;margin-top:10px;
+    background:linear-gradient(135deg,#16213e,#c62828);
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .hero-panel{
+    border-radius:13px;padding:16px 14px 22px;
+    background:
+      radial-gradient(circle, rgba(22,33,62,0.14) 1.6px, transparent 1.6px) 0 0/16px 16px,
+      #f4f6fb;
+  }
+  .comic-banner{
+    position:relative;border-radius:12px;padding:22px 18px 18px;text-align:center;overflow:hidden;
+    background:#16213e;border:3px solid #16213e;margin-bottom:16px;
+  }
+  .comic-banner::before{
+    content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(115deg, transparent 0 38%, rgba(255,203,61,0.9) 38% 46%, transparent 46% 100%),
+      linear-gradient(115deg, transparent 0 55%, rgba(198,40,40,0.85) 55% 63%, transparent 63% 100%);
+  }
+  .comic-banner::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle, rgba(255,255,255,0.5) 1.4px, transparent 1.4px) 0 0/14px 14px;
+    opacity:0.25;
+  }
+  .comic-shout{
+    position:absolute;top:10px;right:10px;background:#c62828;color:#fff;
+    font-family:'Bangers',cursive;font-size:15px;letter-spacing:.5px;line-height:1;
+    padding:7px 10px 5px;border:2.5px solid #16213e;border-radius:4px;
+    transform:rotate(6deg);z-index:3;box-shadow:2px 3px 0 rgba(0,0,0,0.3);
+  }
+  .comic-emblem-wrap{margin:0 auto 8px;width:64px;position:relative;z-index:2;filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.4));}
+  .comic-banner .banner-pill{
+    display:inline-block;background:#ffcb3d;color:#16213e;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:3px;margin-bottom:8px;position:relative;z-index:2;
+    border:1.5px solid #16213e;
+  }
+  .comic-banner h1{
+    font-family:'Bangers',cursive;font-size:32px;letter-spacing:1px;line-height:1;
+    color:#ffcb3d;-webkit-text-stroke:1.5px #16213e;position:relative;z-index:2;
+    text-shadow:2px 2px 0 #c62828;
+  }
+  .comic-banner p{margin:9px 0 0;color:#eef1f7;font-size:12.5px;position:relative;z-index:2;font-weight:600;}
+
+  .comic-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:#16213e;
+    background:linear-gradient(180deg,#ffe08a,#ffcb3d);
+    border:2.5px solid #16213e;border-radius:9px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 #16213e;
+  }
+  .comic-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #16213e;}
+  .comic-btn.neg{background:linear-gradient(180deg,#e7e9ee,#c9ccd6);}
+  .comic-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.hero .ribbon-body{background:#16213e;}
+  .ribbon-banner.hero .ribbon-tail{background:#0d1428;}
+
+  .motif-hero .space-text{
+    background:#fff;border:3px solid #16213e;clip-path:none;border-radius:8px;
+    box-shadow:3px 3px 0 rgba(22,33,62,0.2);
+  }
+  .motif-hero .space-text::before,.motif-hero .space-text::after{display:none;}
+  .motif-hero .earned-stamp{border-color:#c62828;color:#c62828;}
+  .motif-hero .prize-thumb-large{border-color:#16213e;}
+  .motif-hero .status-chip{border-color:#16213e;}
+  .hero-badge-num{position:absolute;top:-24px;left:50%;transform:translateX(-50%);}
+
+  /* ==================== BACKYARD PUP MOTIF ==================== */
+  .sky-frame{
+    border-radius:24px;padding:12px;margin-top:10px;position:relative;
+    background:linear-gradient(160deg,#bfe3f7,#eaf8ff);
+    box-shadow:0 10px 26px rgba(30,80,120,0.25);
+  }
+  .doghouse-deco{position:absolute;right:-16px;top:30px;width:78px;z-index:3;filter:drop-shadow(2px 4px 3px rgba(0,0,0,0.25));}
+  @media(max-width:420px){.doghouse-deco{width:58px;right:-10px;top:40px;}}
+  .sky-panel{border-radius:18px;padding:18px 16px 24px;background:#ffffff;}
+  .cloud-banner{
+    position:relative;text-align:center;padding:22px 20px 18px;margin-bottom:18px;border-radius:32px;
+    background:#fbfdff;box-shadow:0 3px 0 rgba(160,200,220,0.5), inset 0 0 0 3px #dff0fb;
+  }
+  .cloud-banner .signpost-stack{top:-6px;left:-4px;}
+  .cloud-banner .signpost{background:#c99a5b;color:#fff;}
+  .paw-corner{position:absolute;bottom:8px;right:12px;opacity:0.9;}
+  .puppy-doghouse-corner{position:absolute;top:-8px;left:-6px;width:56px;z-index:2;filter:drop-shadow(1px 3px 2px rgba(0,0,0,0.2));}
+  .cloud-banner .banner-pill{
+    display:inline-block;background:#eaf6ff;font-family:'Fredoka',sans-serif;font-weight:700;
+    font-size:11px;letter-spacing:.3px;padding:4px 12px;border-radius:20px;margin-bottom:8px;
+    border:1.5px solid #cfe8f8;
+  }
+  .cloud-banner h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:28px;}
+  .cloud-banner p{margin:8px 0 0;color:#5c6b76;font-size:13.5px;}
+
+  .paw-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#2c3a42;
+    border:none;border-radius:16px;padding:11px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .paw-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .paw-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.puppy .ribbon-body{background:#2f7ab8;color:#fff;}
+  .ribbon-banner.puppy .ribbon-tail{background:#1f5c85;}
+
+  .motif-puppy .space-text{
+    background:#f3faff;border:2.5px dashed #6fa8d8;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-puppy .space-text::before,.motif-puppy .space-text::after{display:none;}
+  .motif-puppy .earned-stamp{border-color:#2f7ab8;color:#2f7ab8;background:rgba(255,255,255,0.6);}
+  .motif-puppy .prize-thumb-large{border:2px solid #6fa8d8;background:#eaf6ff;}
+  .motif-puppy .status-chip{border-color:#6fa8d8;}
+  .motif-puppy .shelf-slot{border:2.5px dashed #6fa8d8;background:#f3faff;}
+  .motif-puppy .shelf-slot.locked{background:#e6f1f8;}
+
+  /* ==================== BATTLE QUEST MOTIF ==================== */
+  .battle-frame{
+    border-radius:16px;padding:3px;margin-top:10px;position:relative;
+    background:linear-gradient(135deg,#1a1f3d,#6c3fc9);
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .crate-deco{position:absolute;right:-18px;top:26px;width:74px;z-index:3;filter:drop-shadow(2px 4px 3px rgba(0,0,0,0.35));}
+  @media(max-width:420px){.crate-deco{width:56px;right:-10px;top:36px;}}
+  .battle-panel{
+    border-radius:13px;padding:16px 14px 22px;
+    background:
+      linear-gradient(180deg, rgba(108,63,201,0.10), transparent 40%),
+      #f5f4fb;
+  }
+  .plaque-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:12px;overflow:hidden;
+    background:#1a1f3d;border:3px solid #1a1f3d;margin-bottom:16px;
+  }
+  .plaque-banner::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(160deg, rgba(108,63,201,0.5), transparent 55%);
+  }
+  .crown-deco-wrap{position:relative;z-index:2;margin-bottom:4px;}
+  .plaque-shout{
+    position:absolute;top:10px;right:10px;background:#6c3fc9;color:#fff;
+    font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.5px;line-height:1.1;
+    padding:6px 10px;border:2px solid #ffcf3d;border-radius:4px;
+    transform:rotate(5deg);z-index:3;box-shadow:2px 3px 0 rgba(0,0,0,0.35);
+  }
+  .plaque-icon-corner{position:absolute;top:6px;right:6px;width:66px;z-index:3;filter:drop-shadow(2px 3px 2px rgba(0,0,0,0.4));}
+  .plaque-banner .banner-pill{
+    display:inline-block;background:#6c3fc9;color:#fff;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;position:relative;z-index:2;
+    border:1.5px solid #ffcf3d;
+  }
+  .plaque-banner h1{
+    font-family:'Anton',sans-serif;font-size:30px;letter-spacing:1px;line-height:1;
+    color:#fff;position:relative;z-index:2;text-shadow:2px 2px 0 #6c3fc9;
+  }
+  .plaque-banner p{margin:9px 0 0;color:#dcdcf0;font-size:12.5px;position:relative;z-index:2;font-weight:600;}
+
+  .battle-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:#fff;
+    background:linear-gradient(180deg,#8a5eea,#6c3fc9);
+    border:2.5px solid #1a1f3d;border-radius:9px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 #1a1f3d;
+  }
+  .battle-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #1a1f3d;}
+  .battle-btn.neg{background:linear-gradient(180deg,#c9cbe0,#a8abc9); color:#1a1f3d;}
+  .battle-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.battle .ribbon-body{background:#1a1f3d;}
+  .ribbon-banner.battle .ribbon-tail{background:#0f1226;}
+
+  .motif-battle .space-text{
+    background:#fff;border:3px solid #1a1f3d;clip-path:none;border-radius:8px;
+    box-shadow:3px 3px 0 rgba(26,31,61,0.18);
+  }
+  .motif-battle .space-text::before,.motif-battle .space-text::after{display:none;}
+  .motif-battle .earned-stamp{border-color:#6c3fc9;color:#6c3fc9;}
+  .motif-battle .prize-thumb-large{border-color:#1a1f3d;}
+  .motif-battle .status-chip{border-color:#1a1f3d;}
+
+  /* ==================== PINK GLAM MOTIF ==================== */
+  .glam-frame{
+    border-radius:22px;padding:14px;margin-top:10px;
+    background:
+      radial-gradient(ellipse 22px 16px at 10% 15%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 18px 24px at 35% 8%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 20px 15px at 65% 20%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 16px 20px at 90% 12%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 20px 16px at 15% 50%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 18px 22px at 50% 45%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 22px 16px at 80% 55%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 18px 20px at 25% 85%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 20px 16px at 60% 80%, #3d0f28 40%, transparent 42%),
+      radial-gradient(ellipse 16px 18px at 92% 88%, #3d0f28 40%, transparent 42%),
+      #e91e8c;
+    box-shadow:0 10px 26px rgba(120,10,60,0.35);
+  }
+  .glam-panel{border-radius:16px;padding:18px 16px 24px;background:#fff5fa;}
+  .cloud-banner.glam{position:relative;}
+  .cloud-banner.glam .bow-deco{position:absolute;top:-8px;left:-6px;width:78px;z-index:3;}
+  .cloud-banner.glam .star-deco{position:absolute;top:6px;right:8px;z-index:3;}
+  .cloud-banner.glam .crown-deco-wrap{margin:0 auto 4px;width:44px;}
+  .cloud-banner.glam h1{color:#3d0f28;}
+  .cloud-banner.glam h1 .accent-word{color:#e91e8c;-webkit-text-stroke:0.5px #3d0f28;}
+  .cloud-banner.glam .banner-pill{background:#ffe4f0;border-color:#f5b8d9;color:#8a1457;}
+
+  .glam-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#fff;
+    background:#e91e8c;border:2.5px solid #2b0d1c;border-radius:20px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 #2b0d1c;
+  }
+  .glam-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #2b0d1c;}
+  .glam-btn.neg{background:#ffe4f0;color:#8a1457;}
+  .glam-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.glam .ribbon-body{background:#e91e8c;}
+  .ribbon-banner.glam .ribbon-tail{background:#b8156b;}
+
+  .motif-glam .space-text{
+    background:#fff5fa;border:2.5px dashed #e91e8c;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-glam .space-text::before,.motif-glam .space-text::after{display:none;}
+  .motif-glam .earned-stamp{border-color:#e91e8c;color:#e91e8c;background:rgba(255,255,255,0.7);}
+  .motif-glam .prize-thumb-large{border:2px solid #e91e8c;background:#ffe4f0;}
+  .motif-glam .status-chip{border-color:#e91e8c;}
+  .motif-glam .shelf-slot{border:2.5px dashed #e91e8c;background:#fff5fa;}
+  .motif-glam .shelf-slot.locked{background:#ffe4f0;}
+
+  /* ==================== NEON GAMER MOTIF ==================== */
+  .gamer-frame{
+    border-radius:20px;padding:12px;margin-top:10px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(94,231,255,0.22) 0 18%, transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(240,109,158,0.22) 0 20%, transparent 48%),
+      linear-gradient(160deg,#2a1a55,#150c2e);
+    box-shadow:0 10px 30px rgba(20,10,50,0.5);
+  }
+  .gamer-panel{border-radius:14px;padding:16px 14px 22px;background:#f3f1fb;}
+  .arcade-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:14px;overflow:hidden;
+    background:#150c2e;border:3px solid #9b5de5;margin-bottom:16px;
+    box-shadow:0 0 18px rgba(155,93,229,0.5), inset 0 0 14px rgba(94,231,255,0.15);
+  }
+  .arcade-controller-deco{width:64px;margin:0 auto 8px;filter:drop-shadow(0 0 6px rgba(94,231,255,0.6));}
+  .arcade-banner .banner-pill{
+    display:inline-block;background:rgba(155,93,229,0.25);color:#e9dfff;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid #9b5de5;
+  }
+  .arcade-banner h1{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:27px;letter-spacing:.5px;
+    color:#fff;text-shadow:0 0 8px rgba(155,93,229,0.9), 0 0 14px rgba(94,231,255,0.5);
+  }
+  .arcade-banner p{margin:9px 0 0;color:#c9c3de;font-size:12.5px;}
+  .arcade-shout{
+    position:absolute;top:10px;right:10px;background:#150c2e;color:#5ee7ff;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:12px;letter-spacing:.3px;
+    padding:6px 11px;border:2px solid #5ee7ff;border-radius:14px;
+    box-shadow:0 0 8px rgba(94,231,255,0.6);
+  }
+
+  .neon-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#150c2e;
+    border:2px solid #150c2e;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.25);
+  }
+  .neon-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.25);}
+  .neon-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.gamer .ribbon-body{background:#150c2e;color:#5ee7ff;}
+  .ribbon-banner.gamer .ribbon-tail{background:#0c0720;}
+
+  .motif-gamer .space-text{
+    background:#f8f7fd;border:2.5px dashed #9b5de5;clip-path:none;border-radius:16px;
+    box-shadow:none;
+  }
+  .motif-gamer .space-text::before,.motif-gamer .space-text::after{display:none;}
+  .motif-gamer .earned-stamp{border-color:#9b5de5;color:#6a2fc9;background:rgba(255,255,255,0.7);}
+  .motif-gamer .prize-thumb-large{border:2px solid #9b5de5;background:#ece6fb;}
+  .motif-gamer .status-chip{border-color:#9b5de5;}
+  .motif-gamer .shelf-slot{border:2.5px dashed #9b5de5;background:#f8f7fd;}
+  .motif-gamer .shelf-slot.locked{background:#ece6fb;}
+
+  /* ==================== TROPICAL HAWAIIAN MOTIF ==================== */
+  .tropical-frame{
+    border-radius:22px;padding:12px;margin-top:10px;
+    background:linear-gradient(180deg,#bfe9ec 0%,#bfe9ec 35%,#f2e2b8 35%,#f2e2b8 100%);
+    box-shadow:0 10px 26px rgba(10,90,90,0.25);
+  }
+  .tropical-panel{border-radius:16px;padding:18px 16px 24px;background:#fffaf0;}
+  .wood-banner{
+    position:relative;text-align:center;padding:22px 20px 18px;border-radius:16px;
+    background:repeating-linear-gradient(90deg,#c68a4e 0 3px,#b87a3e 3px 6px);
+    border:4px solid #8a5a2c;box-shadow:0 4px 0 rgba(0,0,0,0.15);margin-bottom:16px;
+  }
+  .wood-banner .signpost-stack{top:auto;bottom:-6px;right:-4px;left:auto;}
+  .wood-banner .signpost{background:#0f9b8e;color:#fff;}
+  .hibiscus-corner{position:absolute;top:6px;left:8px;width:46px;z-index:2;}
+  .wood-banner .banner-pill{
+    display:inline-block;background:rgba(255,255,255,.75);color:#0d3b3d;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.3px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid rgba(13,59,61,0.2);
+  }
+  .wood-banner h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:28px;color:#0d3b3d;text-shadow:1px 1px 0 rgba(255,255,255,0.4);}
+  .wood-banner h1 .accent-word{color:#f2617e;}
+  .wood-banner p{margin:8px 0 0;color:#2f5c5e;font-size:13px;font-weight:600;}
+
+  .tropical-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#0d3b3d;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .tropical-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .tropical-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.tropical .ribbon-body{background:#f2617e;}
+  .ribbon-banner.tropical .ribbon-tail{background:#d1425e;}
+
+  .motif-tropical .space-text{
+    background:#fdf6e3;border:2.5px dashed #0f9b8e;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-tropical .space-text::before,.motif-tropical .space-text::after{display:none;}
+  .motif-tropical .earned-stamp{border-color:#0f9b8e;color:#0d5c56;background:rgba(255,255,255,0.7);}
+  .motif-tropical .prize-thumb-large{border:2px solid #0f9b8e;background:#e3f6f4;}
+  .motif-tropical .status-chip{border-color:#0f9b8e;}
+  .motif-tropical .shelf-slot{border:2.5px dashed #0f9b8e;background:#fdf6e3;}
+  .motif-tropical .shelf-slot.locked{background:#f2e8cd;}
+
+  /* ==================== FOREST NATURE MOTIF ==================== */
+  .forest-frame{
+    border-radius:22px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#d9ecc9,#f2ecd8);
+    box-shadow:0 10px 26px rgba(40,60,20,0.25);
+  }
+  .forest-panel{border-radius:16px;padding:18px 16px 24px;background:#fbf8ee;}
+  .wood-banner.forest .signpost{background:#5a9c4a;color:#fff;}
+  .wood-banner.forest h1{color:#2d4a24;}
+  .wood-banner.forest h1 .accent-word{color:#5a9c4a;}
+  .wood-banner.forest p{color:#3d5c34;}
+  .leaf-corner{position:absolute;top:6px;left:8px;width:28px;z-index:2;}
+  .forest-tree-corner{width:62px;}
+  .office-chair-corner{width:52px;}
+
+  .forest-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#2d4a24;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .forest-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .forest-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.forest .ribbon-body{background:#5a9c4a;}
+  .ribbon-banner.forest .ribbon-tail{background:#3f7a32;}
+
+  .motif-forest .space-text{
+    background:#fbf8ee;border:2.5px dashed #5a9c4a;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-forest .space-text::before,.motif-forest .space-text::after{display:none;}
+  .motif-forest .earned-stamp{border-color:#5a9c4a;color:#3d6b30;background:rgba(255,255,255,0.7);}
+  .motif-forest .prize-thumb-large{border:2px solid #5a9c4a;background:#eaf3e0;}
+  .motif-forest .status-chip{border-color:#5a9c4a;}
+  .motif-forest .shelf-slot{border:2.5px dashed #5a9c4a;background:#fbf8ee;}
+  .motif-forest .shelf-slot.locked{background:#eef0e2;}
+
+  /* ==================== COZY OFFICE MOTIF ==================== */
+  .office-frame{
+    border-radius:22px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#e8ecdf,#f7f2e6);
+    box-shadow:0 10px 26px rgba(60,50,30,0.2);
+  }
+  .office-panel{border-radius:16px;padding:18px 16px 24px;background:#fdfaf2;}
+  .wood-banner.office{background:repeating-linear-gradient(90deg,#e6dcc3 0 3px,#ddd0b0 3px 6px);border-color:#a68a5c;}
+  .wood-banner.office .signpost{background:#7a9b6e;color:#fff;}
+  .wood-banner.office h1{color:#4a3c2e;}
+  .wood-banner.office h1 .accent-word{color:#7a9b6e;}
+  .wood-banner.office p{color:#6b5c48;}
+
+  .office-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#3d3527;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .office-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .office-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.office .ribbon-body{background:#7a9b6e;}
+  .ribbon-banner.office .ribbon-tail{background:#5c7a52;}
+
+  .motif-office .space-text{
+    background:#fdfaf2;border:2.5px dashed #7a9b6e;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-office .space-text::before,.motif-office .space-text::after{display:none;}
+  .motif-office .earned-stamp{border-color:#7a9b6e;color:#4a6b40;background:rgba(255,255,255,0.7);}
+  .motif-office .prize-thumb-large{border:2px solid #7a9b6e;background:#eef2e6;}
+  .motif-office .status-chip{border-color:#7a9b6e;}
+  .motif-office .shelf-slot{border:2.5px dashed #7a9b6e;background:#fdfaf2;}
+  .motif-office .shelf-slot.locked{background:#f0ece0;}
+
+  /* ==================== CAR RACING MOTIF ==================== */
+  .race-frame{
+    border-radius:16px;padding:10px;margin-top:10px;
+    background:repeating-linear-gradient(45deg,#1a1a1a 0 10px,#2e2e2e 10px 20px);
+    box-shadow:0 10px 26px rgba(0,0,0,0.35);
+  }
+  .race-panel{border-radius:12px;padding:16px 14px 22px;background:#f4f4f4;}
+  .race-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:12px;overflow:hidden;
+    background:#1a1a1a;border:3px solid #1a1a1a;margin-bottom:16px;
+  }
+  .race-banner::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg, transparent 0 40%, rgba(214,40,40,0.75) 40% 48%, transparent 48% 100%),
+               linear-gradient(100deg, transparent 0 58%, rgba(61,139,214,0.7) 58% 66%, transparent 66% 100%);
+  }
+  .race-flag-deco{position:relative;z-index:2;width:130px;margin:0 auto 6px;}
+  .race-banner .banner-pill{
+    display:inline-block;background:#ffc93d;color:#1a1a1a;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.3px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;position:relative;z-index:2;
+  }
+  .race-banner h1{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:29px;position:relative;z-index:2;
+    color:#ffc93d;-webkit-text-stroke:1px #1a1a1a;text-shadow:2px 2px 0 #d62828;
+  }
+  .race-banner p{margin:9px 0 0;color:#e8e8e8;font-size:12.5px;position:relative;z-index:2;font-weight:600;}
+
+  .race-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#1a1a1a;
+    border:2px solid #1a1a1a;border-radius:10px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 #1a1a1a;
+  }
+  .race-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #1a1a1a;}
+  .race-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.race .ribbon-body{background:#d62828;}
+  .ribbon-banner.race .ribbon-tail{background:#a81f1f;}
+
+  .motif-race .space-text{
+    background:#fafafa;border:2.5px dashed #d62828;clip-path:none;border-radius:14px;
+    box-shadow:none;
+  }
+  .motif-race .space-text::before,.motif-race .space-text::after{display:none;}
+  .motif-race .earned-stamp{border-color:#d62828;color:#d62828;background:rgba(255,255,255,0.7);}
+  .motif-race .prize-thumb-large{border:2px solid #1a1a1a;background:#eceff1;}
+  .motif-race .status-chip{border-color:#1a1a1a;}
+  .motif-race .shelf-slot{border:2.5px dashed #d62828;background:#fafafa;}
+  .motif-race .shelf-slot.locked{background:#e8e8e8;}
+
+  /* ==================== FAIRYTALE CASTLE MOTIF ==================== */
+  .fairytale-frame{
+    border-radius:20px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#2a1f4d,#8a5fc9);
+    box-shadow:0 10px 30px rgba(40,20,70,0.4);
+  }
+  .fairytale-panel{border-radius:14px;padding:16px 14px 22px;background:#faf7ff;}
+  .royal-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:14px;overflow:hidden;
+    background:#2a1f4d;border:3px solid #f0c14b;margin-bottom:16px;
+    box-shadow:0 0 16px rgba(240,193,75,0.35);
+  }
+  .royal-banner::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px) 0 0/20px 20px;
+    opacity:0.25;
+  }
+  .castle-deco-wrap{position:relative;z-index:2;width:110px;margin:0 auto 6px;}
+  .royal-banner .banner-pill{
+    display:inline-block;background:rgba(240,193,75,0.2);color:#f0c14b;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid #f0c14b;position:relative;z-index:2;
+  }
+  .royal-banner h1{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:27px;position:relative;z-index:2;
+    color:#f0c14b;text-shadow:0 0 10px rgba(240,193,75,0.6);
+  }
+  .royal-banner p{margin:9px 0 0;color:#d8ceef;font-size:12.5px;position:relative;z-index:2;}
+
+  .fairytale-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#2a1f4d;
+    border:2px solid #2a1f4d;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 #2a1f4d;
+  }
+  .fairytale-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #2a1f4d;}
+  .fairytale-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.fairytale .ribbon-body{background:#2a1f4d;color:#f0c14b;}
+  .ribbon-banner.fairytale .ribbon-tail{background:#1c1533;}
+
+  .motif-fairytale .space-text{
+    background:#fdfbff;border:2.5px dashed #8a5fc9;clip-path:none;border-radius:16px;
+    box-shadow:none;
+  }
+  .motif-fairytale .space-text::before,.motif-fairytale .space-text::after{display:none;}
+  .motif-fairytale .earned-stamp{border-color:#8a5fc9;color:#6a3fb9;background:rgba(255,255,255,0.7);}
+  .motif-fairytale .prize-thumb-large{border:2px solid #8a5fc9;background:#eee5fb;}
+  .motif-fairytale .status-chip{border-color:#8a5fc9;}
+  .motif-fairytale .shelf-slot{border:2.5px dashed #8a5fc9;background:#fdfbff;}
+  .motif-fairytale .shelf-slot.locked{background:#ece3f7;}
+
+  /* ==================== VOLLEYBALL MOTIF ==================== */
+  .volley-frame{
+    border-radius:20px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#dce8f2,#f2ecd8);
+    box-shadow:0 10px 26px rgba(20,50,70,0.25);
+  }
+  .volley-panel{border-radius:14px;padding:16px 14px 22px;background:#fbfaf4;}
+  .volley-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:14px;overflow:hidden;
+    background:#12314a;border:3px solid #12314a;margin-bottom:16px;
+  }
+  .volley-banner::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg, transparent 0 55%, rgba(232,184,74,0.7) 55% 63%, transparent 63% 100%);
+  }
+  .volley-ball-deco{position:relative;z-index:2;width:140px;margin:0 auto 6px;}
+  .volley-banner .banner-pill{
+    display:inline-block;background:rgba(232,184,74,0.2);color:#e8b84a;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid #e8b84a;position:relative;z-index:2;
+  }
+  .volley-banner h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:27px;color:#fff;position:relative;z-index:2;text-shadow:2px 2px 0 #2c5f8a;}
+  .volley-banner p{margin:9px 0 0;color:#cfe0ec;font-size:12.5px;position:relative;z-index:2;font-weight:600;}
+
+  .volley-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#12314a;
+    border:none;border-radius:14px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.18);
+  }
+  .volley-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.18);}
+  .volley-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.volley .ribbon-body{background:#12314a;color:#e8b84a;}
+  .ribbon-banner.volley .ribbon-tail{background:#0c2236;}
+
+  .motif-volley .space-text{
+    background:#fbfaf4;border:2.5px dashed #2c5f8a;clip-path:none;border-radius:16px;
+    box-shadow:none;
+  }
+  .motif-volley .space-text::before,.motif-volley .space-text::after{display:none;}
+  .motif-volley .earned-stamp{border-color:#2c5f8a;color:#1f4e79;background:rgba(255,255,255,0.7);}
+  .motif-volley .prize-thumb-large{border:2px solid #2c5f8a;background:#e6eef5;}
+  .motif-volley .status-chip{border-color:#2c5f8a;}
+  .motif-volley .shelf-slot{border:2.5px dashed #2c5f8a;background:#fbfaf4;}
+  .motif-volley .shelf-slot.locked{background:#e8eef2;}
+
+  /* ==================== SING & DANCE STAGE MOTIF ==================== */
+  .stage-frame{
+    border-radius:20px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#3d1a3d,#8a5fd6);
+    box-shadow:0 10px 30px rgba(45,20,45,0.4);
+  }
+  .stage-panel{border-radius:14px;padding:16px 14px 22px;background:#fbf7fd;}
+  .marquee-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:14px;overflow:hidden;
+    background:#2d1a3d;border:4px solid #f0c14b;margin-bottom:16px;
+    box-shadow:0 0 0 2px #2d1a3d, 0 0 16px rgba(240,193,75,0.4);
+  }
+  .marquee-banner::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle, rgba(240,193,75,0.7) 1.6px, transparent 1.6px) 0 0/16px 16px;
+    opacity:0.18;
+  }
+  .marquee-star-deco{position:relative;z-index:2;width:96px;margin:0 auto 6px;}
+  .marquee-banner .banner-pill{
+    display:inline-block;background:rgba(240,193,75,0.2);color:#f0c14b;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid #f0c14b;position:relative;z-index:2;
+  }
+  .marquee-banner h1{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:27px;position:relative;z-index:2;
+    color:#fff;text-shadow:0 0 8px rgba(138,95,214,0.8), 2px 2px 0 #8a5fd6;
+  }
+  .marquee-banner p{margin:9px 0 0;color:#d8ceef;font-size:12.5px;position:relative;z-index:2;}
+
+  .stage-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#2d1a3d;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.18);
+  }
+  .stage-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.18);}
+  .stage-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.stage .ribbon-body{background:#2d1a3d;color:#f0c14b;}
+  .ribbon-banner.stage .ribbon-tail{background:#1e1129;}
+
+  .motif-stage .space-text{
+    background:#fbf7fd;border:2.5px dashed #8a5fd6;clip-path:none;border-radius:16px;
+    box-shadow:none;
+  }
+  .motif-stage .space-text::before,.motif-stage .space-text::after{display:none;}
+  .motif-stage .earned-stamp{border-color:#8a5fd6;color:#6a3fc9;background:rgba(255,255,255,0.7);}
+  .motif-stage .prize-thumb-large{border:2px solid #8a5fd6;background:#eee5fb;}
+  .motif-stage .status-chip{border-color:#8a5fd6;}
+  .motif-stage .shelf-slot{border:2.5px dashed #8a5fd6;background:#fbf7fd;}
+  .motif-stage .shelf-slot.locked{background:#ece3f7;}
+
+  /* ==================== BASEBALL MOTIF ==================== */
+  .baseball-frame{
+    border-radius:18px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#1a2f5c,#c0392b);
+    box-shadow:0 10px 28px rgba(20,30,60,0.35);
+  }
+  .baseball-panel{border-radius:13px;padding:16px 14px 22px;background:#fbf9f2;}
+  .baseball-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:13px;overflow:hidden;
+    background:#1a2f5c;border:3px solid #1a2f5c;margin-bottom:16px;
+  }
+  .baseball-banner::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg, transparent 0 55%, rgba(192,57,43,0.75) 55% 63%, transparent 63% 100%);
+  }
+  .baseball-bats-deco{position:relative;z-index:2;width:130px;margin:0 auto 6px;}
+  .baseball-banner .banner-pill{
+    display:inline-block;background:rgba(192,57,43,0.2);color:#f0e0c0;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid #e8c26a;position:relative;z-index:2;
+  }
+  .baseball-banner h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:27px;color:#fff;position:relative;z-index:2;text-shadow:2px 2px 0 #c0392b;}
+  .baseball-banner p{margin:9px 0 0;color:#d8e0ec;font-size:12.5px;position:relative;z-index:2;font-weight:600;}
+
+  .baseball-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#1a2f5c;
+    border:none;border-radius:14px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.18);
+  }
+  .baseball-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.18);}
+  .baseball-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.baseball .ribbon-body{background:#c0392b;}
+  .ribbon-banner.baseball .ribbon-tail{background:#992d21;}
+
+  .motif-baseball .space-text{
+    background:#fdfbf5;border:2.5px dashed #c0392b;clip-path:none;border-radius:16px;
+    box-shadow:none;
+  }
+  .motif-baseball .space-text::before,.motif-baseball .space-text::after{display:none;}
+  .motif-baseball .earned-stamp{border-color:#c0392b;color:#a4291b;background:rgba(255,255,255,0.7);}
+  .motif-baseball .prize-thumb-large{border:2px solid #1a2f5c;background:#e6ecf5;}
+  .motif-baseball .status-chip{border-color:#1a2f5c;}
+  .motif-baseball .shelf-slot{border:2.5px dashed #c0392b;background:#fdfbf5;}
+  .motif-baseball .shelf-slot.locked{background:#efe9db;}
+
+  /* ==================== SPY DETECTIVE MOTIF ==================== */
+  .spy-frame{
+    border-radius:16px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#1c1c1c,#5a5a4a);
+    box-shadow:0 10px 28px rgba(0,0,0,0.4);
+  }
+  .spy-panel{border-radius:12px;padding:16px 14px 22px;background:#f4f1e8;}
+  .spy-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:12px;overflow:hidden;
+    background:#1c1c1c;border:3px solid #1c1c1c;margin-bottom:16px;
+  }
+  .spy-banner::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg, transparent 0 55%, rgba(201,166,107,0.6) 55% 63%, transparent 63% 100%);
+  }
+  .spy-disguise-deco{position:relative;z-index:2;width:110px;margin:0 auto 6px;}
+  .spy-banner .banner-pill{
+    display:inline-block;background:rgba(201,166,107,0.2);color:#c9a66b;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid #c9a66b;position:relative;z-index:2;
+  }
+  .spy-banner h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:27px;color:#f4f1e8;position:relative;z-index:2;text-shadow:2px 2px 0 #3a3a3a;}
+  .spy-banner p{margin:9px 0 0;color:#c9c5b8;font-size:12.5px;position:relative;z-index:2;font-weight:600;}
+
+  .spy-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#1c1c1c;
+    border:none;border-radius:12px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.2);
+  }
+  .spy-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.2);}
+  .spy-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.spy .ribbon-body{background:#8a3a4a;}
+  .ribbon-banner.spy .ribbon-tail{background:#6e2e3c;}
+
+  .motif-spy .space-text{
+    background:#f9f6ee;border:2.5px dashed #3a3a3a;clip-path:none;border-radius:14px;
+    box-shadow:none;
+  }
+  .motif-spy .space-text::before,.motif-spy .space-text::after{display:none;}
+  .motif-spy .earned-stamp{border-color:#8a3a4a;color:#8a3a4a;background:rgba(255,255,255,0.7);}
+  .motif-spy .prize-thumb-large{border:2px solid #3a3a3a;background:#e8e4d8;}
+  .motif-spy .status-chip{border-color:#3a3a3a;}
+  .motif-spy .shelf-slot{border:2.5px dashed #3a3a3a;background:#f9f6ee;}
+  .motif-spy .shelf-slot.locked{background:#e6e2d4;}
+
+  /* ==================== COZY CATS MOTIF ==================== */
+  .cats-frame{
+    border-radius:24px;padding:14px;margin-top:10px;
+    background:linear-gradient(160deg,#f2e4d0,#faf1e2);
+    box-shadow:0 10px 26px rgba(90,60,30,0.25);
+  }
+  .cats-panel{border-radius:18px;padding:18px 16px 24px;background:#fffaf2;}
+  .cloud-banner.cats .signpost{background:#e8899e;color:#fff;}
+  .cloud-banner.cats h1{color:#6b4a3a;}
+  .cloud-banner.cats h1 .accent-word{color:#e8899e;}
+  .cloud-banner.cats p{color:#8a6a54;}
+  .cat-face-corner{position:absolute;top:6px;left:8px;width:52px;z-index:2;}
+
+  .cats-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#4a3628;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .cats-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .cats-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.cats .ribbon-body{background:#e8899e;}
+  .ribbon-banner.cats .ribbon-tail{background:#c96a80;}
+
+  .motif-cats .space-text{
+    background:#fffaf2;border:2.5px dashed #e8899e;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-cats .space-text::before,.motif-cats .space-text::after{display:none;}
+  .motif-cats .earned-stamp{border-color:#e8899e;color:#c96a80;background:rgba(255,255,255,0.7);}
+  .motif-cats .prize-thumb-large{border:2px solid #e8899e;background:#fbeef1;}
+  .motif-cats .status-chip{border-color:#e8899e;}
+  .motif-cats .shelf-slot{border:2.5px dashed #e8899e;background:#fffaf2;}
+  .motif-cats .shelf-slot.locked{background:#f2e8dc;}
+
+  /* ==================== MINING ADVENTURE MOTIF ==================== */
+  .mining-frame{
+    border-radius:20px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#dceccb,#f0e6cf);
+    box-shadow:0 10px 26px rgba(30,50,15,0.25);
+  }
+  .mining-panel{border-radius:14px;padding:16px 14px 22px;background:#fbf9f0;}
+  .wood-banner.mining .signpost{background:#5a8c3f;color:#fff;}
+  .wood-banner.mining h1{color:#2d1f14;}
+  .wood-banner.mining h1 .accent-word{color:#4ecdc4;}
+  .wood-banner.mining p{color:#4a5c3a;}
+  .pickaxe-corner{position:absolute;top:6px;left:8px;width:52px;z-index:2;}
+
+  .mining-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#2d1f14;
+    border:none;border-radius:12px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.18);
+  }
+  .mining-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.18);}
+  .mining-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.mining .ribbon-body{background:#5a8c3f;}
+  .ribbon-banner.mining .ribbon-tail{background:#436b2e;}
+
+  .motif-mining .space-text{
+    background:#fbf9f0;border:2.5px dashed #5a8c3f;clip-path:none;border-radius:14px;
+    box-shadow:none;
+  }
+  .motif-mining .space-text::before,.motif-mining .space-text::after{display:none;}
+  .motif-mining .earned-stamp{border-color:#4ecdc4;color:#2a9088;background:rgba(255,255,255,0.7);}
+  .motif-mining .prize-thumb-large{border:2px solid #5a8c3f;background:#e6f0dc;}
+  .motif-mining .status-chip{border-color:#5a8c3f;}
+  .motif-mining .shelf-slot{border:2.5px dashed #5a8c3f;background:#fbf9f0;}
+  .motif-mining .shelf-slot.locked{background:#eee7d6;}
+
+  /* ==================== CREATURE ADVENTURE MOTIF ==================== */
+  .critter-frame{
+    border-radius:20px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#d8e8f5,#f2ecd0);
+    box-shadow:0 10px 26px rgba(20,40,70,0.25);
+  }
+  .critter-panel{border-radius:14px;padding:16px 14px 22px;background:#fbfaf3;}
+  .wood-banner.critter .signpost{background:#4a90d9;color:#fff;}
+  .wood-banner.critter h1{color:#1e3a5c;}
+  .wood-banner.critter h1 .accent-word{color:#4a90d9;}
+  .wood-banner.critter p{color:#3a5670;}
+  .medal-corner{position:absolute;top:6px;left:8px;width:34px;z-index:2;}
+  .critter-supereffective-deco{position:relative;z-index:2;width:170px;margin:0 auto 4px;}
+
+  .critter-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#1e3a5c;
+    border:none;border-radius:12px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.18);
+  }
+  .critter-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.18);}
+  .critter-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.critter .ribbon-body{background:#c0392b;}
+  .ribbon-banner.critter .ribbon-tail{background:#992d21;}
+
+  .motif-critter .space-text{
+    background:#fbfaf3;border:2.5px dashed #4a90d9;clip-path:none;border-radius:16px;
+    box-shadow:none;
+  }
+  .motif-critter .space-text::before,.motif-critter .space-text::after{display:none;}
+  .motif-critter .earned-stamp{border-color:#c0392b;color:#c0392b;background:rgba(255,255,255,0.7);}
+  .motif-critter .prize-thumb-large{border:2px solid #4a90d9;background:#e6f0fa;}
+  .motif-critter .status-chip{border-color:#4a90d9;}
+  .motif-critter .shelf-slot{border:2.5px dashed #4a90d9;background:#fbfaf3;}
+  .motif-critter .shelf-slot.locked{background:#eef0e0;}
+
+  /* ==================== SOCCER MOTIF ==================== */
+  .soccer-frame{
+    border-radius:18px;padding:12px;margin-top:10px;
+    background:linear-gradient(160deg,#1a3a5c,#4a9c6a);
+    box-shadow:0 10px 28px rgba(20,40,30,0.35);
+  }
+  .soccer-panel{border-radius:13px;padding:16px 14px 22px;background:#fbfaf5;}
+  .soccer-banner{
+    position:relative;text-align:center;padding:22px 18px 18px;border-radius:13px;overflow:hidden;
+    background:#1a3a5c;border:3px solid #1a3a5c;margin-bottom:16px;
+  }
+  .soccer-banner::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg, transparent 0 55%, rgba(74,156,106,0.75) 55% 63%, transparent 63% 100%);
+  }
+  .soccer-ball-deco{position:relative;z-index:2;width:140px;margin:0 auto 6px;}
+  .soccer-banner .banner-pill{
+    display:inline-block;background:rgba(74,156,106,0.25);color:#bfe8cc;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:11px;letter-spacing:.4px;
+    padding:4px 12px;border-radius:20px;margin-bottom:8px;border:1.5px solid #4a9c6a;position:relative;z-index:2;
+  }
+  .soccer-banner h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:27px;color:#fff;position:relative;z-index:2;text-shadow:2px 2px 0 #2c5f9e;}
+  .soccer-banner p{margin:9px 0 0;color:#cfe0ec;font-size:12.5px;position:relative;z-index:2;font-weight:600;}
+
+  .soccer-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#1a3a5c;
+    border:none;border-radius:14px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.18);
+  }
+  .soccer-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.18);}
+  .soccer-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.soccer .ribbon-body{background:#1a3a5c;color:#e8b84a;}
+  .ribbon-banner.soccer .ribbon-tail{background:#122a44;}
+
+  .motif-soccer .space-text{
+    background:#fbfaf5;border:2.5px dashed #2c5f9e;clip-path:none;border-radius:16px;
+    box-shadow:none;
+  }
+  .motif-soccer .space-text::before,.motif-soccer .space-text::after{display:none;}
+  .motif-soccer .earned-stamp{border-color:#4a9c6a;color:#347049;background:rgba(255,255,255,0.7);}
+  .motif-soccer .prize-thumb-large{border:2px solid #2c5f9e;background:#e6eef7;}
+  .motif-soccer .status-chip{border-color:#2c5f9e;}
+  .motif-soccer .shelf-slot{border:2.5px dashed #2c5f9e;background:#fbfaf5;}
+  .motif-soccer .shelf-slot.locked{background:#e6ece0;}
+
+  /* ==================== BABY BUNNIES MOTIF ==================== */
+  .bunnies-frame{
+    border-radius:24px;padding:14px;margin-top:10px;
+    background:linear-gradient(160deg,#3d2f6b,#8b7cc9);
+    box-shadow:0 10px 26px rgba(45,30,80,0.35);
+  }
+  .bunnies-panel{border-radius:18px;padding:18px 16px 24px;background:#fbf9ff;}
+  .cloud-banner.bunnies .signpost{background:#8b7cc9;color:#fff;}
+  .cloud-banner.bunnies h1{color:#2d2050;}
+  .cloud-banner.bunnies h1 .accent-word{color:#8b7cc9;}
+  .cloud-banner.bunnies p{color:#5c4d8a;}
+  .bunny-face-corner{position:absolute;top:6px;left:8px;width:70px;z-index:2;}
+
+  .bunnies-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#2d2050;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .bunnies-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .bunnies-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.bunnies .ribbon-body{background:#8b7cc9;}
+  .ribbon-banner.bunnies .ribbon-tail{background:#6d5fa8;}
+
+  .motif-bunnies .space-text{
+    background:#fbf9ff;border:2.5px dashed #8b7cc9;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-bunnies .space-text::before,.motif-bunnies .space-text::after{display:none;}
+  .motif-bunnies .earned-stamp{border-color:#8b7cc9;color:#6d5fa8;background:rgba(255,255,255,0.7);}
+  .motif-bunnies .prize-thumb-large{border:2px solid #8b7cc9;background:#ece7fb;}
+  .motif-bunnies .status-chip{border-color:#8b7cc9;}
+  .motif-bunnies .shelf-slot{border:2.5px dashed #8b7cc9;background:#fbf9ff;}
+  .motif-bunnies .shelf-slot.locked{background:#ece7fb;}
+
+  /* ==================== LADYBUG GARDEN MOTIF ==================== */
+  .ladybug-frame{
+    border-radius:24px;padding:14px;margin-top:10px;
+    background:linear-gradient(160deg,#7a1f18,#d1352b);
+    box-shadow:0 10px 26px rgba(60,15,10,0.35);
+  }
+  .ladybug-panel{border-radius:18px;padding:18px 16px 24px;background:#fff8f3;}
+  .cloud-banner.ladybug .signpost{background:#d1352b;color:#fff;}
+  .cloud-banner.ladybug h1{color:#2b1414;}
+  .cloud-banner.ladybug h1 .accent-word{color:#d1352b;}
+  .cloud-banner.ladybug p{color:#7a3a30;}
+  .ladybug-flying-deco{position:relative;z-index:2;width:150px;margin:0 auto 4px;}
+
+  .ladybug-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#2b1414;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .ladybug-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .ladybug-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.ladybug .ribbon-body{background:#d1352b;}
+  .ribbon-banner.ladybug .ribbon-tail{background:#8a231c;}
+
+  .motif-ladybug .space-text{
+    background:#fff8f3;border:2.5px dashed #d1352b;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-ladybug .space-text::before,.motif-ladybug .space-text::after{display:none;}
+  .motif-ladybug .earned-stamp{border-color:#d1352b;color:#8a231c;background:rgba(255,255,255,0.7);}
+  .motif-ladybug .prize-thumb-large{border:2px solid #d1352b;background:#fbe4de;}
+  .motif-ladybug .status-chip{border-color:#d1352b;}
+  .motif-ladybug .shelf-slot{border:2.5px dashed #d1352b;background:#fff8f3;}
+  .motif-ladybug .shelf-slot.locked{background:#fbe4de;}
+
+  /* ==================== NEON HORSE MOTIF ==================== */
+  .horse-frame{
+    border-radius:24px;padding:14px;margin-top:10px;
+    background:linear-gradient(160deg,#170a28,#3d1a5c);
+    box-shadow:0 10px 26px rgba(10,4,20,0.5);
+  }
+  .horse-panel{border-radius:18px;padding:18px 16px 24px;background:#f7eeff;}
+  .cloud-banner.horse .signpost{background:#e620a0;color:#fff;}
+  .cloud-banner.horse h1{color:#3d1a5c;}
+  .cloud-banner.horse h1 .accent-word{color:#e620a0;}
+  .cloud-banner.horse p{color:#7a5a9e;}
+  .horse-rider-deco{position:relative;z-index:2;width:180px;margin:0 auto 4px;filter:drop-shadow(0 2px 4px rgba(60,20,80,0.3));}
+
+  .horse-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#3d1a5c;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .horse-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .horse-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.horse .ribbon-body{background:#e620a0;}
+  .ribbon-banner.horse .ribbon-tail{background:#9b1f74;}
+
+  .motif-horse .space-text{
+    background:#f7eeff;border:2.5px dashed #e620a0;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-horse .space-text::before,.motif-horse .space-text::after{display:none;}
+  .motif-horse .earned-stamp{border-color:#e620a0;color:#9b1f74;background:rgba(255,255,255,0.8);}
+  .motif-horse .prize-thumb-large{border:2px solid #e620a0;background:#f0e0fa;}
+  .motif-horse .status-chip{border-color:#e620a0;}
+  .motif-horse .shelf-slot{border:2.5px dashed #9b5de5;background:#f7eeff;}
+  .motif-horse .shelf-slot.locked{background:#ece0fa;}
+
+  /* ==================== PINK LEOPARD MOTIF ==================== */
+  .leopard-frame{
+    border-radius:24px;padding:14px;margin-top:10px;
+    background:linear-gradient(160deg,#c23a6b,#e6297a);
+    box-shadow:0 10px 26px rgba(120,15,55,0.35);
+  }
+  .leopard-panel{border-radius:18px;padding:18px 16px 24px;background:#fff5fa;}
+  .cloud-banner.leopard .signpost{background:#e6297a;color:#fff;}
+  .cloud-banner.leopard h1{color:#3d0d1f;}
+  .cloud-banner.leopard h1 .accent-word{color:#e6297a;}
+  .cloud-banner.leopard p{color:#8a4a63;}
+  .leopard-sleep-deco{position:relative;z-index:2;width:170px;margin:0 auto 4px;}
+
+  .leopard-btn{
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:13.5px;color:#3d0d1f;
+    border:none;border-radius:16px;padding:10px 16px;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .leopard-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .leopard-btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+
+  .ribbon-banner.leopard .ribbon-body{background:#e6297a;}
+  .ribbon-banner.leopard .ribbon-tail{background:#a01d58;}
+
+  .motif-leopard .space-text{
+    background:#fff5fa;border:2.5px dashed #e6297a;clip-path:none;border-radius:18px;
+    box-shadow:none;
+  }
+  .motif-leopard .space-text::before,.motif-leopard .space-text::after{display:none;}
+  .motif-leopard .earned-stamp{border-color:#e6297a;color:#a01d58;background:rgba(255,255,255,0.8);}
+  .motif-leopard .prize-thumb-large{border:2px solid #e6297a;background:#fbdce9;}
+  .motif-leopard .status-chip{border-color:#e6297a;}
+  .motif-leopard .shelf-slot{border:2.5px dashed #e6297a;background:#fff5fa;}
+  .motif-leopard .shelf-slot.locked{background:#fbdce9;}
+
+  /* ---- xp card ---- */
+  .xp-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 4px 16px rgba(90,60,140,0.07);}
+  .xp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;flex-wrap:wrap;gap:4px;}
+  .xp-top h3{font-size:16px;color:var(--ink);}
+  .xp-top .date{font-size:12.5px;color:#a79bbb;}
+  .bar-track{height:22px;background:#f0eaf9;border-radius:12px;overflow:hidden;margin-bottom:5px;}
+  .bar-fill{height:100%;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--accentDark));transition:width .4s ease;}
+  .bar-ticks{display:flex;justify-content:space-between;font-size:11px;color:#b6acc7;margin-bottom:4px;}
+  .bar-count{text-align:right;font-size:13px;color:var(--accentDark);font-weight:800;margin-bottom:14px;}
+  .xp-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+  .status-line{font-size:13.5px;color:#8a7fa0;margin-top:4px;}
+  .unlock-cta{
+    width:100%;margin-top:14px;padding:16px;border-radius:16px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--gold),#f6b955);
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:17px;color:#5a3b12;
+    box-shadow:0 5px 0 rgba(0,0,0,0.12);
+  }
+  .unlock-cta:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(0,0,0,0.12);}
+
+  /* ---- board path ---- */
+  .compass-corner{position:absolute;bottom:6px;left:8px;opacity:.85;z-index:2;}
+  .path-wrap{position:relative;margin-top:20px;}
+  .space-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;position:relative;}
+  .space-row.right{flex-direction:row-reverse;}
+  .space-icon-wrap{position:relative;flex-shrink:0;width:76px;height:76px;}
+  .token{position:absolute;top:-24px;left:50%;transform:translateX(-50%);filter:drop-shadow(1px 3px 2px rgba(0,0,0,0.35));}
+  .space-text{
+    flex:1;position:relative;background:#f6ecd2;padding:16px 14px 12px;
+    border:3px solid #22203f;
+    clip-path:polygon(0% 4%,3% 0%,97% 0%,100% 5%,100% 95%,97% 100%,3% 100%,0% 96%);
+    box-shadow:0 4px 0 rgba(0,0,0,0.1);
+    overflow:hidden;
+  }
+  .space-text::before,.space-text::after{
+    content:"";position:absolute;top:6px;width:9px;height:9px;border-radius:50%;
+    background:var(--gold,#e0a83c);box-shadow:inset 0 0 0 2px #22203f;
+  }
+  .space-text::before{left:9px;}
+  .space-text::after{right:9px;}
+  .space-row.right .space-text::before{left:9px;}
+  .ribbon-tag{
+    display:inline-block;background:var(--accent,#33366f);color:#fff;
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.6px;
+    padding:2px 9px 2px;border-radius:3px;margin-bottom:6px;text-transform:uppercase;
+    box-shadow:0 2px 0 rgba(0,0,0,0.15);
+  }
+  .space-text-inner{display:flex;gap:10px;align-items:flex-start;text-align:left;}
+  .prize-thumb-large{
+    width:64px;height:64px;margin:6px auto 8px;border-radius:8px;
+    background:#fbf6e8;border:2px solid #22203f;padding:5px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    text-decoration:none;
+  }
+  .shelf-slot-inner{display:flex;align-items:center;justify-content:center;width:100%;height:100%;text-decoration:none;}
+  .space-text-body{flex:1;min-width:0;}
+  .space-text{text-align:center;}
+  .space-text h4{font-size:14.5px;margin-bottom:2px;color:#22203f;}
+  .space-text p{font-size:12px;color:#6b6350;margin:0 0 6px;}
+  .status-chip{
+    display:inline-block;font-size:10px;font-weight:800;font-family:'Fredoka',sans-serif;
+    padding:3px 10px;border-radius:4px;background:#e4dcc2;color:#7a7260;letter-spacing:.2px;
+    border:1.5px solid #22203f;
+  }
+  .status-chip.current{background:var(--gold,#e0a83c);color:#22203f;}
+  .status-chip.earned{background:#22203f;color:var(--gold,#e0a83c);}
+  .earned-stamp{
+    position:absolute;top:38%;left:50%;transform:translate(-50%,-50%) rotate(-14deg);
+    border:3px solid #a53232;color:#a53232;font-family:'Fredoka',sans-serif;font-weight:700;
+    font-size:15px;letter-spacing:1px;padding:3px 12px;border-radius:6px;opacity:0.8;
+    text-transform:uppercase;pointer-events:none;background:rgba(255,255,255,0.15);
+  }
+  .space-row.locked .space-icon-wrap svg{filter:grayscale(1) opacity(0.6);}
+  .space-row.locked .space-text{background:#e4dcc2;}
+  .space-row.locked .space-text .ribbon-tag{background:#8a8470;}
+
+  /* ---- shelf ---- */
+  .shelf-row{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:10px;
+    background:#fff;border-radius:18px;padding:16px;margin-top:14px;
+    box-shadow:0 4px 16px rgba(90,60,140,0.07);
+  }
+  @media(max-width:480px){.shelf-row{grid-template-columns:repeat(3,1fr);}}
+  .shelf-slot{
+    aspect-ratio:1;border-radius:6px;border:2.5px solid #22203f;
+    display:flex;align-items:center;justify-content:center;background:#f6ecd2;overflow:hidden;
+    box-shadow:0 3px 0 rgba(0,0,0,0.1);
+  }
+  .shelf-slot.locked{background:#e4dcc2;}
+  .shelf-slot.locked svg{filter:grayscale(1) opacity(0.45);}
+
+  /* ---- admin ---- */
+  details.admin{margin-top:30px;background:#fff;border-radius:18px;padding:4px 18px;box-shadow:0 4px 16px rgba(90,60,140,0.07);}
+  details.admin summary{
+    cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:600;font-size:14.5px;
+    color:var(--accentDark);padding:14px 0;list-style:none;
+  }
+  details.admin summary::-webkit-details-marker{display:none;}
+  .admin-body{padding:6px 0 18px;border-top:1.5px solid #f0eaf9;}
+  .admin-section{margin-top:16px;}
+  .admin-section h4{font-size:13px;color:#8a7fa0;margin-bottom:8px;}
+  .admin-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px;}
+  .admin-row input,.admin-row select{border:1.5px solid #e4dcf5;border-radius:10px;padding:8px 10px;font-size:14px;background:#faf8ff;}
+  .prize-edit-row{display:grid;grid-template-columns:1.2fr 1.2fr 1fr auto;gap:8px;margin-bottom:14px;padding-bottom:12px;border-bottom:1.5px solid #f0eaf9;}
+  @media(max-width:480px){.prize-edit-row{grid-template-columns:1fr;}}
+  .prize-edit-row input,.prize-edit-row select{border:1.5px solid #e4dcf5;border-radius:10px;padding:8px 10px;font-size:13.5px;background:#faf8ff;}
+  .upload-btn{
+    font-size:12.5px;font-weight:700;color:#8a7fa0;
+    border:1.5px dashed #d9cdf2;padding:7px 11px;border-radius:9px;background:#faf8ff;
+  }
+  .toast{
+    position:fixed;top:16px;left:50%;transform:translateX(-50%);
+    background:#3c3350;color:#fff;padding:11px 20px;border-radius:14px;
+    font-family:'Fredoka',sans-serif;font-weight:600;font-size:13.5px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:1000;opacity:0;
+    transition:opacity .25s ease, top .25s ease;pointer-events:none;
+  }
+  .toast.show{opacity:1;top:24px;}
+  .empty-note{text-align:center;color:#a79bbb;font-size:13px;padding:20px;}
+ body{background:#f3f0fa;padding:16px;} .demo-block{max-width:480px;margin:0 auto 30px;background:#fff;padding:14px;border-radius:16px;} .demo-block h3{font-family:Fredoka,sans-serif;margin:0 0 10px;}</style></head><body><div class="demo-block"><h3>Lynzy — Lavender &amp; Gold</h3><a class="backlink" href="/x">← All quests</a><div class="page-tabs"><button class="page-tab " data-action="switch-tab" data-tab="board" data-id="s1">Prize Quest</button><button class="page-tab active" data-action="switch-tab" data-tab="grades" data-id="s1">Grade Level Quest</button></div><div class="grade-quest-wrap"><div class="grade-prize-card " style="border-color:#1c1d3f;"><div class="grade-prize-badge" style="background:#e0a83c;color:#1c1830;">Goal Prize</div><div class="grade-prize-body"><div class="grade-prize-text"><h4>Pick the Friday movie</h4><p>Popcorn too!</p></div></div><p class="grade-prize-hint">Reached when Reading, Math, and Language all hit their goal grade level.</p></div><div class="grade-prize-editor"><input type="text" id="grade-prize-title" placeholder="Prize title" value="Pick the Friday movie"><input type="text" id="grade-prize-desc" placeholder="Prize description (optional)" value="Popcorn too!"><div class="admin-row"><button class="pillbtn small ghost" data-action="save-grade-prize" data-id="s1">Save prize</button><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-grade-prize-photo="1" style="display:none;"></label></div></div></div><div class="grade-road-row"><div class="grade-road-card " style="border-color:#33366f;"><div class="grade-road-head"><span class="grade-road-emoji">📖</span><h4 style="color:#1c1d3f;">Reading</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#7d93c9;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#1c1d3f;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:93.33333333333333%;border-color:#1c1d3f;">📖</div></div><div class="grade-road-nums"><span>Now: 2.8</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#1c1d3f;">0.2 away</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-reading" value="2.8"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-reading" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="reading" style="width:100%;margin-top:6px;">Save</button></div><div class="grade-road-card " style="border-color:#33366f;"><div class="grade-road-head"><span class="grade-road-emoji">🔢</span><h4 style="color:#1c1d3f;">Math</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#7d93c9;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#1c1d3f;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:70%;border-color:#1c1d3f;">🔢</div></div><div class="grade-road-nums"><span>Now: 2.1</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#1c1d3f;">0.9 away</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-math" value="2.1"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-math" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="math" style="width:100%;margin-top:6px;">Save</button></div><div class="grade-road-card met" style="border-color:#e0a83c;background:#e0a83c18;"><div class="grade-road-head"><span class="grade-road-emoji">🗣️</span><h4 style="color:#1c1d3f;">Language</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#e0a83c;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#1c1d3f;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#1c1d3f;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:100%;border-color:#1c1d3f;">🗣️</div></div><div class="grade-road-nums"><span>Now: 3.5</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#1c1d3f;">🎉 Reached!</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-language" value="3.5"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-language" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="language" style="width:100%;margin-top:6px;">Save</button></div></div></div><details class="admin"><summary>Grown-up controls</summary><div class="admin-body"><div class="admin-section"><h4>Board settings</h4><div class="admin-row"><input type="text" id="admin-name" value="Lynzy (Lavender &amp; Gold)" placeholder="Name"><button class="pillbtn small" data-action="save-name" data-id="s1">Save name</button></div><div class="admin-row"><input type="number" id="admin-goal" value="120" min="1" style="width:90px;"><button class="pillbtn small" data-action="save-goal" data-id="s1">Save daily goal</button></div><div class="admin-row"><select id="admin-period"><option value="1" selected>Every day</option><option value="2" >Every 2 days</option><option value="7" >Every week</option></select><button class="pillbtn small" data-action="save-period" data-id="s1">Save goal period</button></div><div class="admin-row"><input type="text" id="admin-code" value="" placeholder="Access code" style="width:120px;"><button class="pillbtn small" data-action="save-code" data-id="s1">Save code</button></div><div class="admin-row"><select id="admin-motif"><option value="treasure" selected>Pirate Treasure Voyage</option><option value="hero" >Hero Academy</option><option value="puppy" >Backyard Pup Quest</option><option value="battle" >Battle Quest</option><option value="glam" >Pink Glam</option><option value="gamer" >Neon Gamer</option><option value="tropical" >Tropical Hawaiian</option><option value="forest" >Forest Nature</option><option value="office" >Cozy Office</option><option value="racing" >Car Racing</option><option value="fairytale" >Fairytale Castle</option><option value="volleyball" >Volleyball</option><option value="stage" >Sing & Dance Stage</option><option value="baseball" >Baseball</option><option value="spy" >Spy Detective</option><option value="cats" >Cozy Cats</option><option value="mining" >Mining Adventure</option><option value="critter" >Creature Adventure</option><option value="soccer" >Soccer</option><option value="bunnies" >Baby Bunnies</option><option value="ladybug" >Ladybug Garden</option><option value="horse" >Neon Horse</option><option value="leopard" >Pink Leopard</option></select><button class="pillbtn small" data-action="save-motif" data-id="s1">Save design style</button></div><div class="admin-row"><select id="admin-palette"><option value="lavender" >Lavender</option><option value="lavenderGold" selected>Lavender & Gold (Treasure)</option><option value="bubblegum" >Bubblegum</option><option value="mint" >Mint</option><option value="lemon" >Lemon</option><option value="heroRedGold" >Red & Gold (Hero Academy)</option><option value="skyBlue" >Sky Blue (Backyard Pup)</option><option value="battleBluePurple" >Blue & Purple (Battle Quest)</option><option value="pinkGlam" >Pink Glam</option><option value="neonGamer" >Neon Gamer</option><option value="tropical" >Tropical Hawaiian</option><option value="forest" >Forest Nature</option><option value="cozyOffice" >Cozy Office</option><option value="racing" >Car Racing</option><option value="fairytale" >Fairytale Castle</option><option value="volleyball" >Volleyball</option><option value="stage" >Sing & Dance Stage</option><option value="baseball" >Baseball</option><option value="spy" >Spy Detective</option><option value="cats" >Cozy Cats</option><option value="mining" >Mining Adventure</option><option value="critter" >Creature Adventure</option><option value="soccer" >Soccer</option><option value="bunnies" >Baby Bunnies</option><option value="ladybug" >Ladybug Garden</option><option value="horse" >Neon Horse</option><option value="leopard" >Pink Leopard</option></select><button class="pillbtn small" data-action="save-palette" data-id="s1">Save palette</button></div></div><div class="admin-section"><h4>Prizes</h4><div class="prize-edit-row"><input type="text" placeholder="Prize 1 title" data-prize-field="title" data-prize-idx="0" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="0" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="0" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 2 title" data-prize-field="title" data-prize-idx="1" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="1" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="1" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 3 title" data-prize-field="title" data-prize-idx="2" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="2" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="2" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 4 title" data-prize-field="title" data-prize-idx="3" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="3" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="3" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 5 title" data-prize-field="title" data-prize-idx="4" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="4" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="4" style="display:none;"></label></div><span></span></div></div><div class="admin-section"><h4>Quick actions</h4><div class="admin-row"><button class="pillbtn small ghost" data-action="log-full-day" data-id="s1">Fill this period to goal</button><button class="pillbtn small negative" data-action="reset-board" data-id="s1">Reset this board</button><button class="pillbtn small negative" data-action="clear-prizes" data-id="s1">Clear all prizes</button></div></div></div></details></div><div class="demo-block"><h3>Brooklyn — Red &amp; Gold</h3><a class="backlink" href="/x">← All quests</a><div class="page-tabs"><button class="page-tab " data-action="switch-tab" data-tab="board" data-id="s1">Prize Quest</button><button class="page-tab active" data-action="switch-tab" data-tab="grades" data-id="s1">Grade Level Quest</button></div><div class="grade-quest-wrap"><div class="grade-prize-card " style="border-color:#16213e;"><div class="grade-prize-badge" style="background:#ffcb3d;color:#16213e;">Goal Prize</div><div class="grade-prize-body"><div class="grade-prize-text"><h4>Pick the Friday movie</h4><p>Popcorn too!</p></div></div><p class="grade-prize-hint">Reached when Reading, Math, and Language all hit their goal grade level.</p></div><div class="grade-prize-editor"><input type="text" id="grade-prize-title" placeholder="Prize title" value="Pick the Friday movie"><input type="text" id="grade-prize-desc" placeholder="Prize description (optional)" value="Popcorn too!"><div class="admin-row"><button class="pillbtn small ghost" data-action="save-grade-prize" data-id="s1">Save prize</button><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-grade-prize-photo="1" style="display:none;"></label></div></div></div><div class="grade-road-row"><div class="grade-road-card " style="border-color:#c62828;"><div class="grade-road-head"><span class="grade-road-emoji">📖</span><h4 style="color:#16213e;">Reading</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#dbe3f5;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#16213e;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:93.33333333333333%;border-color:#16213e;">📖</div></div><div class="grade-road-nums"><span>Now: 2.8</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#16213e;">0.2 away</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-reading" value="2.8"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-reading" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="reading" style="width:100%;margin-top:6px;">Save</button></div><div class="grade-road-card " style="border-color:#c62828;"><div class="grade-road-head"><span class="grade-road-emoji">🔢</span><h4 style="color:#16213e;">Math</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#dbe3f5;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#16213e;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:70%;border-color:#16213e;">🔢</div></div><div class="grade-road-nums"><span>Now: 2.1</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#16213e;">0.9 away</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-math" value="2.1"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-math" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="math" style="width:100%;margin-top:6px;">Save</button></div><div class="grade-road-card met" style="border-color:#ffcb3d;background:#ffcb3d18;"><div class="grade-road-head"><span class="grade-road-emoji">🗣️</span><h4 style="color:#16213e;">Language</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#ffcb3d;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#16213e;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#16213e;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:100%;border-color:#16213e;">🗣️</div></div><div class="grade-road-nums"><span>Now: 3.5</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#16213e;">🎉 Reached!</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-language" value="3.5"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-language" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="language" style="width:100%;margin-top:6px;">Save</button></div></div></div><details class="admin"><summary>Grown-up controls</summary><div class="admin-body"><div class="admin-section"><h4>Board settings</h4><div class="admin-row"><input type="text" id="admin-name" value="Brooklyn (Red &amp; Gold)" placeholder="Name"><button class="pillbtn small" data-action="save-name" data-id="s1">Save name</button></div><div class="admin-row"><input type="number" id="admin-goal" value="120" min="1" style="width:90px;"><button class="pillbtn small" data-action="save-goal" data-id="s1">Save daily goal</button></div><div class="admin-row"><select id="admin-period"><option value="1" selected>Every day</option><option value="2" >Every 2 days</option><option value="7" >Every week</option></select><button class="pillbtn small" data-action="save-period" data-id="s1">Save goal period</button></div><div class="admin-row"><input type="text" id="admin-code" value="" placeholder="Access code" style="width:120px;"><button class="pillbtn small" data-action="save-code" data-id="s1">Save code</button></div><div class="admin-row"><select id="admin-motif"><option value="treasure" >Pirate Treasure Voyage</option><option value="hero" selected>Hero Academy</option><option value="puppy" >Backyard Pup Quest</option><option value="battle" >Battle Quest</option><option value="glam" >Pink Glam</option><option value="gamer" >Neon Gamer</option><option value="tropical" >Tropical Hawaiian</option><option value="forest" >Forest Nature</option><option value="office" >Cozy Office</option><option value="racing" >Car Racing</option><option value="fairytale" >Fairytale Castle</option><option value="volleyball" >Volleyball</option><option value="stage" >Sing & Dance Stage</option><option value="baseball" >Baseball</option><option value="spy" >Spy Detective</option><option value="cats" >Cozy Cats</option><option value="mining" >Mining Adventure</option><option value="critter" >Creature Adventure</option><option value="soccer" >Soccer</option><option value="bunnies" >Baby Bunnies</option><option value="ladybug" >Ladybug Garden</option><option value="horse" >Neon Horse</option><option value="leopard" >Pink Leopard</option></select><button class="pillbtn small" data-action="save-motif" data-id="s1">Save design style</button></div><div class="admin-row"><select id="admin-palette"><option value="lavender" >Lavender</option><option value="lavenderGold" >Lavender & Gold (Treasure)</option><option value="bubblegum" >Bubblegum</option><option value="mint" >Mint</option><option value="lemon" >Lemon</option><option value="heroRedGold" selected>Red & Gold (Hero Academy)</option><option value="skyBlue" >Sky Blue (Backyard Pup)</option><option value="battleBluePurple" >Blue & Purple (Battle Quest)</option><option value="pinkGlam" >Pink Glam</option><option value="neonGamer" >Neon Gamer</option><option value="tropical" >Tropical Hawaiian</option><option value="forest" >Forest Nature</option><option value="cozyOffice" >Cozy Office</option><option value="racing" >Car Racing</option><option value="fairytale" >Fairytale Castle</option><option value="volleyball" >Volleyball</option><option value="stage" >Sing & Dance Stage</option><option value="baseball" >Baseball</option><option value="spy" >Spy Detective</option><option value="cats" >Cozy Cats</option><option value="mining" >Mining Adventure</option><option value="critter" >Creature Adventure</option><option value="soccer" >Soccer</option><option value="bunnies" >Baby Bunnies</option><option value="ladybug" >Ladybug Garden</option><option value="horse" >Neon Horse</option><option value="leopard" >Pink Leopard</option></select><button class="pillbtn small" data-action="save-palette" data-id="s1">Save palette</button></div></div><div class="admin-section"><h4>Prizes</h4><div class="prize-edit-row"><input type="text" placeholder="Prize 1 title" data-prize-field="title" data-prize-idx="0" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="0" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="0" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 2 title" data-prize-field="title" data-prize-idx="1" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="1" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="1" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 3 title" data-prize-field="title" data-prize-idx="2" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="2" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="2" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 4 title" data-prize-field="title" data-prize-idx="3" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="3" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="3" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 5 title" data-prize-field="title" data-prize-idx="4" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="4" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="4" style="display:none;"></label></div><span></span></div></div><div class="admin-section"><h4>Quick actions</h4><div class="admin-row"><button class="pillbtn small ghost" data-action="log-full-day" data-id="s1">Fill this period to goal</button><button class="pillbtn small negative" data-action="reset-board" data-id="s1">Reset this board</button><button class="pillbtn small negative" data-action="clear-prizes" data-id="s1">Clear all prizes</button></div></div></div></details></div><div class="demo-block"><h3>Michael — Blue &amp; Purple</h3><a class="backlink" href="/x">← All quests</a><div class="page-tabs"><button class="page-tab " data-action="switch-tab" data-tab="board" data-id="s1">Prize Quest</button><button class="page-tab active" data-action="switch-tab" data-tab="grades" data-id="s1">Grade Level Quest</button></div><div class="grade-quest-wrap"><div class="grade-prize-card " style="border-color:#1a1f3d;"><div class="grade-prize-badge" style="background:#ffcf3d;color:#1a1f3d;">Goal Prize</div><div class="grade-prize-body"><div class="grade-prize-text"><h4>Pick the Friday movie</h4><p>Popcorn too!</p></div></div><p class="grade-prize-hint">Reached when Reading, Math, and Language all hit their goal grade level.</p></div><div class="grade-prize-editor"><input type="text" id="grade-prize-title" placeholder="Prize title" value="Pick the Friday movie"><input type="text" id="grade-prize-desc" placeholder="Prize description (optional)" value="Popcorn too!"><div class="admin-row"><button class="pillbtn small ghost" data-action="save-grade-prize" data-id="s1">Save prize</button><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-grade-prize-photo="1" style="display:none;"></label></div></div></div><div class="grade-road-row"><div class="grade-road-card " style="border-color:#6c3fc9;"><div class="grade-road-head"><span class="grade-road-emoji">📖</span><h4 style="color:#1a1f3d;">Reading</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#8fc7ea;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#1a1f3d;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:93.33333333333333%;border-color:#1a1f3d;">📖</div></div><div class="grade-road-nums"><span>Now: 2.8</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#1a1f3d;">0.2 away</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-reading" value="2.8"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-reading" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="reading" style="width:100%;margin-top:6px;">Save</button></div><div class="grade-road-card " style="border-color:#6c3fc9;"><div class="grade-road-head"><span class="grade-road-emoji">🔢</span><h4 style="color:#1a1f3d;">Math</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#8fc7ea;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#1a1f3d;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:70%;border-color:#1a1f3d;">🔢</div></div><div class="grade-road-nums"><span>Now: 2.1</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#1a1f3d;">0.9 away</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-math" value="2.1"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-math" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="math" style="width:100%;margin-top:6px;">Save</button></div><div class="grade-road-card met" style="border-color:#ffcf3d;background:#ffcf3d18;"><div class="grade-road-head"><span class="grade-road-emoji">🗣️</span><h4 style="color:#1a1f3d;">Language</h4></div><div class="grade-road-track"><div class="grade-road-path" style="background:#ffcf3d;"></div><div class="grade-road-stone" style="bottom:20%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:40%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:60%;border-color:#1a1f3d;"></div><div class="grade-road-stone" style="bottom:80%;border-color:#1a1f3d;"></div><div class="grade-road-flag">🚩</div><div class="grade-road-token" style="bottom:100%;border-color:#1a1f3d;">🗣️</div></div><div class="grade-road-nums"><span>Now: 3.5</span><span>Goal: 3</span></div><p class="grade-road-status" style="color:#1a1f3d;">🎉 Reached!</p><div class="grade-edit-row"><input type="number" step="0.1" min="0" placeholder="Now" id="grade-current-language" value="3.5"><input type="number" step="0.1" min="0" placeholder="Goal" id="grade-goal-language" value="3"></div><button class="pillbtn small ghost" data-action="save-grade-subject" data-id="s1" data-subject="language" style="width:100%;margin-top:6px;">Save</button></div></div></div><details class="admin"><summary>Grown-up controls</summary><div class="admin-body"><div class="admin-section"><h4>Board settings</h4><div class="admin-row"><input type="text" id="admin-name" value="Michael (Blue &amp; Purple)" placeholder="Name"><button class="pillbtn small" data-action="save-name" data-id="s1">Save name</button></div><div class="admin-row"><input type="number" id="admin-goal" value="120" min="1" style="width:90px;"><button class="pillbtn small" data-action="save-goal" data-id="s1">Save daily goal</button></div><div class="admin-row"><select id="admin-period"><option value="1" selected>Every day</option><option value="2" >Every 2 days</option><option value="7" >Every week</option></select><button class="pillbtn small" data-action="save-period" data-id="s1">Save goal period</button></div><div class="admin-row"><input type="text" id="admin-code" value="" placeholder="Access code" style="width:120px;"><button class="pillbtn small" data-action="save-code" data-id="s1">Save code</button></div><div class="admin-row"><select id="admin-motif"><option value="treasure" >Pirate Treasure Voyage</option><option value="hero" >Hero Academy</option><option value="puppy" >Backyard Pup Quest</option><option value="battle" selected>Battle Quest</option><option value="glam" >Pink Glam</option><option value="gamer" >Neon Gamer</option><option value="tropical" >Tropical Hawaiian</option><option value="forest" >Forest Nature</option><option value="office" >Cozy Office</option><option value="racing" >Car Racing</option><option value="fairytale" >Fairytale Castle</option><option value="volleyball" >Volleyball</option><option value="stage" >Sing & Dance Stage</option><option value="baseball" >Baseball</option><option value="spy" >Spy Detective</option><option value="cats" >Cozy Cats</option><option value="mining" >Mining Adventure</option><option value="critter" >Creature Adventure</option><option value="soccer" >Soccer</option><option value="bunnies" >Baby Bunnies</option><option value="ladybug" >Ladybug Garden</option><option value="horse" >Neon Horse</option><option value="leopard" >Pink Leopard</option></select><button class="pillbtn small" data-action="save-motif" data-id="s1">Save design style</button></div><div class="admin-row"><select id="admin-palette"><option value="lavender" >Lavender</option><option value="lavenderGold" >Lavender & Gold (Treasure)</option><option value="bubblegum" >Bubblegum</option><option value="mint" >Mint</option><option value="lemon" >Lemon</option><option value="heroRedGold" >Red & Gold (Hero Academy)</option><option value="skyBlue" >Sky Blue (Backyard Pup)</option><option value="battleBluePurple" selected>Blue & Purple (Battle Quest)</option><option value="pinkGlam" >Pink Glam</option><option value="neonGamer" >Neon Gamer</option><option value="tropical" >Tropical Hawaiian</option><option value="forest" >Forest Nature</option><option value="cozyOffice" >Cozy Office</option><option value="racing" >Car Racing</option><option value="fairytale" >Fairytale Castle</option><option value="volleyball" >Volleyball</option><option value="stage" >Sing & Dance Stage</option><option value="baseball" >Baseball</option><option value="spy" >Spy Detective</option><option value="cats" >Cozy Cats</option><option value="mining" >Mining Adventure</option><option value="critter" >Creature Adventure</option><option value="soccer" >Soccer</option><option value="bunnies" >Baby Bunnies</option><option value="ladybug" >Ladybug Garden</option><option value="horse" >Neon Horse</option><option value="leopard" >Pink Leopard</option></select><button class="pillbtn small" data-action="save-palette" data-id="s1">Save palette</button></div></div><div class="admin-section"><h4>Prizes</h4><div class="prize-edit-row"><input type="text" placeholder="Prize 1 title" data-prize-field="title" data-prize-idx="0" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="0" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="0" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 2 title" data-prize-field="title" data-prize-idx="1" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="1" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="1" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 3 title" data-prize-field="title" data-prize-idx="2" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="2" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="2" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 4 title" data-prize-field="title" data-prize-idx="3" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="3" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="3" style="display:none;"></label></div><span></span></div><div class="prize-edit-row"><input type="text" placeholder="Prize 5 title" data-prize-field="title" data-prize-idx="4" value="" style="grid-column:1/3;"><button class="pillbtn small ghost" data-action="save-prizes" data-id="s1">Save</button><input type="text" placeholder="Link (optional) — opens when tapped" data-prize-field="link" data-prize-idx="4" value="" style="grid-column:1/3;"><div style="display:flex;align-items:center;gap:6px;"><label class="upload-btn" style="cursor:pointer;">Upload photo<input type="file" accept="image/*" data-prize-photo="4" style="display:none;"></label></div><span></span></div></div><div class="admin-section"><h4>Quick actions</h4><div class="admin-row"><button class="pillbtn small ghost" data-action="log-full-day" data-id="s1">Fill this period to goal</button><button class="pillbtn small negative" data-action="reset-board" data-id="s1">Reset this board</button><button class="pillbtn small negative" data-action="clear-prizes" data-id="s1">Clear all prizes</button></div></div></div></details></div></body></html>
